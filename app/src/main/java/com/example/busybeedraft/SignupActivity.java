@@ -1,7 +1,14 @@
 package com.example.busybeedraft;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.widget.EditText;
@@ -9,8 +16,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 public class SignupActivity extends AppCompatActivity {
+    private static final int PERMISSION_REQUEST_CODE = 101;
+    private static final String PERMISSION_POST_NOTIFICATIONS = "android.permission.POST_NOTIFICATIONS";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,5 +66,6 @@ public class SignupActivity extends AppCompatActivity {
             startActivity(new Intent(SignupActivity.this, LoginActivity.class));
             finish();
         });
-    }
-}
+
+
+    }}

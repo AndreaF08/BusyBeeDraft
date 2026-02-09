@@ -12,9 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class FlashcardAdapter extends RecyclerView.Adapter<FlashcardAdapter.ViewHolder> {
-    private List<CourseDetailActivity.Flashcard> flashcardList;
+    // Changed from CourseDetailActivity.Flashcard to a standard Flashcard model
+    private List<Flashcard> flashcardList;
 
-    public FlashcardAdapter(List<CourseDetailActivity.Flashcard> list) {
+    public FlashcardAdapter(List<Flashcard> list) {
         this.flashcardList = list;
     }
 
@@ -27,23 +28,27 @@ public class FlashcardAdapter extends RecyclerView.Adapter<FlashcardAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        CourseDetailActivity.Flashcard card = flashcardList.get(holder.getAdapterPosition());
+        // Use getBindingAdapterPosition() for modern RecyclerView implementations
+        int currentPos = holder.getBindingAdapterPosition();
+        if (currentPos == RecyclerView.NO_POSITION) return;
 
-        // Stop old listeners from firing while we set the text
+        Flashcard card = flashcardList.get(currentPos);
+
+        // Prevent recursive triggers by removing listeners before setting text
         holder.etTerm.removeTextChangedListener(holder.termWatcher);
         holder.etDefinition.removeTextChangedListener(holder.defWatcher);
 
         holder.etTerm.setText(card.getTerm());
         holder.etDefinition.setText(card.getDefinition());
 
-        // Setup new listeners for this specific card data
+        // Update the watchers to target the specific card instance for this position
         holder.termWatcher = new TextWatcher() {
-            public void afterTextChanged(Editable s) { card.setTerm(s.toString()); }
+            public void afterTextChanged(Editable s) { card.setTerm(s.toString().trim()); }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
         };
         holder.defWatcher = new TextWatcher() {
-            public void afterTextChanged(Editable s) { card.setDefinition(s.toString()); }
+            public void afterTextChanged(Editable s) { card.setDefinition(s.toString().trim()); }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
         };
@@ -52,11 +57,11 @@ public class FlashcardAdapter extends RecyclerView.Adapter<FlashcardAdapter.View
         holder.etDefinition.addTextChangedListener(holder.defWatcher);
 
         holder.btnDelete.setOnClickListener(v -> {
-            int currentPos = holder.getAdapterPosition();
-            if (currentPos != RecyclerView.NO_POSITION) {
-                flashcardList.remove(currentPos);
-                notifyItemRemoved(currentPos);
-                notifyItemRangeChanged(currentPos, flashcardList.size());
+            int deletePos = holder.getBindingAdapterPosition();
+            if (deletePos != RecyclerView.NO_POSITION) {
+                flashcardList.remove(deletePos);
+                notifyItemRemoved(deletePos);
+                notifyItemRangeChanged(deletePos, flashcardList.size());
             }
         });
     }
@@ -75,5 +80,18 @@ public class FlashcardAdapter extends RecyclerView.Adapter<FlashcardAdapter.View
             etDefinition = itemView.findViewById(R.id.etDefinition);
             btnDelete = itemView.findViewById(R.id.btnDeleteCard);
         }
+    }
+
+    /**
+     * Standalone Flashcard model to replace the one removed from CourseDetailActivity.
+     * This ensures the adapter can still manage data independently.
+     */
+    public static class Flashcard {
+        private String term, definition;
+        public Flashcard(String t, String d) { this.term = t; this.definition = d; }
+        public String getTerm() { return term != null ? term : ""; }
+        public void setTerm(String t) { this.term = t; }
+        public String getDefinition() { return definition != null ? definition : ""; }
+        public void setDefinition(String d) { this.definition = d; }
     }
 }

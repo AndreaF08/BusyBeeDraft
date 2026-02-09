@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp">
+
+            <ImageButton
+                android:id="@+id/btnSettings"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_setting"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="#000000" />
+
+            <TextView
+                android:id="@+id/tvGreeting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hello, Ethan..."
+                android:textSize="38sp"
+                android:fontFamily="serif"
+                android:textStyle="italic"
+                android:textColor="#1A1A1A"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/tvCurrentDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sunday, February 8"
+                android:textSize="18sp"
+                android:layout_marginTop="4dp"
+                android:textColor="#333333"
+                app:layout_constraintTop_toBottomOf="@id/tvGreeting"
+                app:layout_constraintStart_toStartOf="@id/tvGreeting" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/idCard"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginTop="25dp"
+                android:background="@drawable/id_card_bg"
+                app:layout_constraintTop_toBottomOf="@id/tvCurrentDate">
+
+                <View
+                    android:id="@+id/avatarBox"
+                    android:layout_width="110dp"
+                    android:layout_height="150dp"
+                    android:background="#A2C2E8"
+                    android:layout_marginStart="35dp"
+                    android:layout_marginTop="30dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <ImageView
+                    android:id="@+id/ivDisplayAvatar"
+                    android:layout_width="100dp"
+                    android:layout_height="140dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/avatar1"
+                    app:layout_constraintTop_toTopOf="@id/avatarBox"
+                    app:layout_constraintBottom_toBottomOf="@id/avatarBox"
+                    app:layout_constraintStart_toStartOf="@id/avatarBox"
+                    app:layout_constraintEnd_toEndOf="@id/avatarBox" />
+
+                <TextView
+                    android:id="@+id/tvClubName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="NU-MOA"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:textColor="#2D5B92"
+                    android:layout_marginTop="15dp"
+                    android:textAlignment="center"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/avatarBox"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginStart="15dp"/>
+
+                <View
+                    android:id="@+id/dottedLine"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:background="#808080"
+                    android:layout_marginTop="10dp"
+                    app:layout_constraintStart_toStartOf="@id/tvClubName"
+                    app:layout_constraintEnd_toEndOf="@id/tvClubName"
+                    app:layout_constraintTop_toBottomOf="@id/tvClubName" />
+
+                <TextView android:id="@+id/tvLabelName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="NAME\nETHAN" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="15dp" app:layout_constraintTop_toBottomOf="@id/dottedLine" app:layout_constraintStart_toStartOf="@id/dottedLine" />
+                <TextView android:id="@+id/tvLabelSchool" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SCHOOL\nNU-MOA" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="20dp" app:layout_constraintTop_toBottomOf="@id/tvLabelName" app:layout_constraintStart_toStartOf="@id/tvLabelName" />
+                <TextView android:id="@+id/tvLabelBday" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BIRTHDAY\n00/00/0000" android:textSize="10sp" android:textStyle="bold" app:layout_constraintTop_toTopOf="@id/tvLabelName" app:layout_constraintStart_toEndOf="@id/tvLabelName" android:layout_marginStart="40dp" />
+                <TextView android:id="@+id/tvLabelYear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="YEAR LEVEL\n1ST YEAR" android:textSize="10sp" android:textStyle="bold" app:layout_constraintTop_toTopOf="@id/tvLabelSchool" app:layout_constraintStart_toStartOf="@id/tvLabelBday" />
+
+                <ImageView
+                    android:id="@+id/ivStarBorder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:elevation="5dp"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/star_border" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView android:id="@+id/tvAvatarLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Choose Avatar:" android:layout_marginTop="20dp" android:textStyle="bold" app:layout_constraintTop_toBottomOf="@id/idCard" app:layout_constraintStart_toStartOf="parent" />
+            <HorizontalScrollView android:id="@+id/avatarScroll" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@id/tvAvatarLabel">
+                <LinearLayout android:id="@+id/avatarTray" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <TextView android:id="@+id/tvColorLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Choose ID Color:" android:layout_marginTop="16dp" android:textStyle="bold" app:layout_constraintTop_toBottomOf="@id/avatarScroll" app:layout_constraintStart_toStartOf="parent" />
+            <HorizontalScrollView android:id="@+id/colorScroll" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@id/tvColorLabel">
+                <LinearLayout android:id="@+id/colorPalette" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <TextView android:id="@+id/tvStickerLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Add Stickers:" android:layout_marginTop="16dp" android:textStyle="bold" app:layout_constraintTop_toBottomOf="@id/colorScroll" app:layout_constraintStart_toStartOf="parent" />
+            <HorizontalScrollView android:id="@+id/stickerScroll" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@id/tvStickerLabel">
+                <LinearLayout android:id="@+id/stickerTray" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnClearSticker"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="Remove Sticker"
+                android:textSize="12sp"
+                android:backgroundTint="#FFC1E3"
+                android:textColor="#000000"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/stickerScroll"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <EditText
+                android:id="@+id/etInputName"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Enter Name"
+                android:paddingStart="15dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/rounded_outline"
+                app:layout_constraintTop_toBottomOf="@id/btnClearSticker" />
+
+            <EditText
+                android:id="@+id/etInputBday"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Select Birthday"
+                android:paddingStart="15dp"
+                android:layout_marginTop="8dp"
+                android:focusable="false"
+                android:clickable="true"
+                android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+                android:background="@drawable/rounded_outline"
+                app:layout_constraintTop_toBottomOf="@id/etInputName" />
+
+            <Spinner
+                android:id="@+id/spnYear"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_outline"
+                app:layout_constraintTop_toBottomOf="@id/etInputBday" />
+
+            <Button
+                android:id="@+id/btnSaveID"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="SAVE ID"
+                android:backgroundTint="#673AB7"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="24dp"
+                app:layout_constraintTop_toBottomOf="@id/spnYear"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

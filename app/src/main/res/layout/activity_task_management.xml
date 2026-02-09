@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:id="@+id/llHeaderGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="15dp"
+        android:gravity="center_vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvTodo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="To-do"
+            android:textSize="32sp"
+            android:fontFamily="serif"
+            android:textStyle="italic"
+            android:textColor="#000000" />
+
+        <FrameLayout
+            android:id="@+id/spinnerContainer"
+            android:layout_width="110dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/label_pill_bg">
+
+            <Spinner
+                android:id="@+id/spTaskFilter"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:spinnerMode="dropdown" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llButtons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingEnd="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/llHeaderGroup"
+        app:layout_constraintBottom_toBottomOf="@id/llHeaderGroup">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnClearCompleted"
+            android:layout_width="90dp"
+            android:layout_height="38dp"
+            android:text="Clear Done"
+            android:textSize="10sp"
+            android:textAllCaps="false"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/rounded_outline"
+            android:backgroundTint="#FFC1E3"
+            android:textColor="#000000"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnOpenAddDialog"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:text="+"
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/rounded_outline"
+            android:backgroundTint="#000000"
+            android:gravity="center"
+            android:padding="0dp"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/lvTasks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="12dp"
+        android:paddingHorizontal="15dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/llHeaderGroup"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:id="@+id/folderContainer"
+        android:layout_width="165dp"
+        android:layout_height="135dp"
+        android:background="@drawable/folder_shape"
+        android:backgroundTint="@color/folder_pink">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_outline_black" />
+
+        <TextView
+            android:id="@+id/text_subject_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_margin="15dp"
+            android:background="@drawable/rounded_outline_black"
+            android:backgroundTint="#FFFFFF"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="SUBJECT"
+            android:textAllCaps="true"
+            android:textColor="#000000"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+</RelativeLayout>

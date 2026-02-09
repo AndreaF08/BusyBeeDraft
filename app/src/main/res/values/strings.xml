@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">BusyBee</string>
+
+    <string-array name="days_array">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+
+    <string name="new_folder">✨ New Folder</string>
+    <string name="subject_name">Subject Name</string>
+    <string name="professor_name">Professor Name</string>
+    <string name="meeting_link">Meeting Link (URL)</string>
+    <string name="day_of_the_week">Day of the Week:</string>
+    <string name="pick_color">Pick a folder color:</string>
+    <string name="save_subject">SAVE SUBJECT</string>
+    <string name="weekly_grid">WEEKLY GRID</string>
+</resources>

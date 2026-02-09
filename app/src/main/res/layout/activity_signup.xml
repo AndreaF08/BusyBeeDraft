@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="30dp"
+        android:gravity="center_horizontal">
+
+        <ImageView
+            android:id="@+id/ivLogoSignup"
+            android:layout_width="280dp"
+            android:layout_height="180dp"
+            android:layout_marginTop="20dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/busybeelogin" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Join the Hive"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginTop="-20dp"
+            android:layout_marginBottom="30dp"/>
+
+        <EditText
+            android:id="@+id/etFullName"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Full Name"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:background="@drawable/rounded_outline"
+            android:layout_marginBottom="15dp"
+            android:inputType="textPersonName"/>
+
+        <EditText
+            android:id="@+id/etEmailSignup"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Email"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:background="@drawable/rounded_outline"
+            android:layout_marginBottom="15dp"
+            android:inputType="textEmailAddress"/>
+
+        <EditText
+            android:id="@+id/etPasswordSignup"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:background="@drawable/rounded_outline"
+            android:layout_marginBottom="30dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSignup"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="Create Account"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:backgroundTint="#FFC107"
+            android:background="@drawable/rounded_outline" />
+
+        <TextView
+            android:id="@+id/tvGoToLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Already a BusyBee? Login"
+            android:layout_marginTop="20dp"
+            android:textColor="#FFC107"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:padding="10dp" />
+
+    </LinearLayout>
+</ScrollView>

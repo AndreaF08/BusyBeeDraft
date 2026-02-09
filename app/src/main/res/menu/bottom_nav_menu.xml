@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="Home" />
+    <item
+        android:id="@+id/nav_folders"
+        android:icon="@drawable/ic_folder"
+        android:title="Courses" />
+    <item
+        android:id="@+id/nav_calendar"
+        android:icon="@drawable/ic_calendar"
+        android:title="Calendar" />
+    <item
+        android:id="@+id/nav_pomodoro"
+        android:icon="@drawable/ic_timer"
+        android:title="Pomodoro" />
+    <item
+        android:id="@+id/nav_id"
+        android:icon="@drawable/ic_badge"
+        android:title="ID" />
+
+</menu>

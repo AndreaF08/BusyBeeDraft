@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Bind Views with explicit types
+        // Bind Views
         EditText etEmail = findViewById(R.id.etEmailLogin);
         EditText etPassword = findViewById(R.id.etPasswordLogin);
         AppCompatButton btnLogin = findViewById(R.id.btnLogin);
@@ -40,7 +40,6 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // Retrieve registered user data
             SharedPreferences prefs = getSharedPreferences("UserDB", MODE_PRIVATE);
             String registeredEmail = prefs.getString("email", null);
             String registeredPass = prefs.getString("password", null);
@@ -48,9 +47,14 @@ public class LoginActivity extends AppCompatActivity {
             if (emailInput.equals(registeredEmail) && passInput.equals(registeredPass)) {
                 Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
                 showLoginNotification();
-                // Delay navigation to allow notification to display
+
+                // Clear the stack and move to the main app
                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    startActivity(new Intent(LoginActivity.this, TaskManagement.class));
+                    // Changed destination to MainActivity as that is usually the "Home"
+                    // If TaskManagement is your actual home, keep it, but ensure finish() is called.
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                     finish();
                 }, 500);
             } else {
@@ -64,18 +68,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void showLoginNotification() {
-        // Check if we have permission to post notifications on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, PERMISSION_POST_NOTIFICATIONS)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                // Permission is not granted, request it
                 ActivityCompat.requestPermissions(this,
                         new String[]{PERMISSION_POST_NOTIFICATIONS},
                         PERMISSION_REQUEST_CODE);
                 return;
             }
         }
-
         displayLoginNotification();
     }
 
@@ -84,7 +85,6 @@ public class LoginActivity extends AppCompatActivity {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             String channelId = "login_channel";
 
-            // Create notification channel for Android 8.0 and above
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 NotificationChannel existingChannel = notificationManager.getNotificationChannel(channelId);
                 if (existingChannel == null) {
@@ -93,28 +93,16 @@ public class LoginActivity extends AppCompatActivity {
                             "Login Notifications",
                             NotificationManager.IMPORTANCE_HIGH
                     );
-                    channel.setDescription("Notifications for account login");
-                    channel.enableVibration(true);
-                    channel.setShowBadge(true);
                     notificationManager.createNotificationChannel(channel);
                 }
             }
 
-            // Build and display heads-up notification
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
                     .setSmallIcon(android.R.drawable.ic_dialog_info)
                     .setContentTitle("Welcome Back!")
                     .setContentText("You have successfully logged in.")
-                    .setStyle(new NotificationCompat.BigTextStyle()
-                            .bigText("Welcome back to BusyBee! You are now logged in and ready to manage your tasks."))
                     .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .setCategory(NotificationCompat.CATEGORY_STATUS)
-                    .setAutoCancel(true)
-                    .setVibrate(new long[]{0, 250, 250, 250});
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                builder.setFullScreenIntent(null, true);
-            }
+                    .setAutoCancel(true);
 
             notificationManager.notify(2, builder.build());
         } catch (Exception e) {
@@ -125,10 +113,9 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                displayLoginNotification();
-            }
+        if (requestCode == PERMISSION_REQUEST_CODE && grantResults.length > 0
+                && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            displayLoginNotification();
         }
     }
 }

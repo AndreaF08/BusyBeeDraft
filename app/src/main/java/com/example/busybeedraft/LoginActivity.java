@@ -25,7 +25,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Bind Views
         EditText etEmail = findViewById(R.id.etEmailLogin);
         EditText etPassword = findViewById(R.id.etPasswordLogin);
         AppCompatButton btnLogin = findViewById(R.id.btnLogin);
@@ -41,20 +40,19 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             SharedPreferences prefs = getSharedPreferences("UserDB", MODE_PRIVATE);
-            String registeredEmail = prefs.getString("email", null);
-            String registeredPass = prefs.getString("password", null);
+            String storedPass = prefs.getString(emailInput + "_password", null);
 
-            if (emailInput.equals(registeredEmail) && passInput.equals(registeredPass)) {
-                Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+            if (storedPass != null && storedPass.equals(passInput)) {
+                // SAVE SESSION: This is required to separate course data by user
+                SharedPreferences sessionPrefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+                sessionPrefs.edit().putString("current_user_email", emailInput).apply();
+
+                String userName = prefs.getString(emailInput + "_name", "User");
+                Toast.makeText(this, "Welcome back, " + userName + "!", Toast.LENGTH_SHORT).show();
                 showLoginNotification();
 
-                // Clear the stack and move to the main app
                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    // Changed destination to MainActivity as that is usually the "Home"
-                    // If TaskManagement is your actual home, keep it, but ensure finish() is called.
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
+                    startActivity(new Intent(LoginActivity.this, TaskManagement.class));
                     finish();
                 }, 500);
             } else {
@@ -89,10 +87,7 @@ public class LoginActivity extends AppCompatActivity {
                 NotificationChannel existingChannel = notificationManager.getNotificationChannel(channelId);
                 if (existingChannel == null) {
                     NotificationChannel channel = new NotificationChannel(
-                            channelId,
-                            "Login Notifications",
-                            NotificationManager.IMPORTANCE_HIGH
-                    );
+                            channelId, "Login Notifications", NotificationManager.IMPORTANCE_HIGH);
                     notificationManager.createNotificationChannel(channel);
                 }
             }

@@ -38,9 +38,16 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         btnSignOut.setOnClickListener(v -> {
+            // FIX C: Explicitly clear the user session to prevent account data bleed
+            android.content.SharedPreferences sessionPrefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+            sessionPrefs.edit().clear().apply();
+
+            // Redirect to Login and clear the activity backstack
             Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
+
+            Toast.makeText(this, "Signed out successfully", Toast.LENGTH_SHORT).show();
             finish();
         });
     }

@@ -37,8 +37,20 @@ public class TaskManagement extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_management);
 
+        // Security Check: Redirect if no user is logged in
+        if (getUserPrefix().equals("default_user")) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        // Get course name and apply .trim() to match the Master List logic
         courseName = getIntent().getStringExtra("COURSE_NAME");
-        if (courseName == null) courseName = "General";
+        if (courseName == null) {
+            courseName = "General";
+        } else {
+            courseName = courseName.trim();
+        }
 
         lvTasks = findViewById(R.id.lvTasks);
         tvNoTasks = findViewById(R.id.tvNoTasks);
@@ -52,7 +64,6 @@ public class TaskManagement extends AppCompatActivity {
         findViewById(R.id.btnOpenAddDialog).setOnClickListener(v -> showAddTaskDialog());
 
         findViewById(R.id.btnClearCompleted).setOnClickListener(v -> {
-            // 1. Identify which tasks are completed
             ArrayList<String> tasksToRemove = new ArrayList<>();
             for (String task : taskList) {
                 if (Boolean.TRUE.equals(taskCompletionStatus.get(task))) {
@@ -60,14 +71,11 @@ public class TaskManagement extends AppCompatActivity {
                 }
             }
 
-            // 2. Remove those specific tasks from the main list and the status map
             if (!tasksToRemove.isEmpty()) {
                 for (String task : tasksToRemove) {
                     taskList.remove(task);
                     taskCompletionStatus.remove(task);
                 }
-
-                // 3. Save the updated state and refresh the UI
                 saveTasksToDisk();
                 adapter.notifyDataSetChanged();
                 Toast.makeText(this, "Completed tasks cleared", Toast.LENGTH_SHORT).show();
@@ -77,6 +85,11 @@ public class TaskManagement extends AppCompatActivity {
         });
 
         setupBottomNavigation();
+    }
+
+    private String getUserPrefix() {
+        SharedPreferences sessionPrefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        return sessionPrefs.getString("current_user_email", "default_user");
     }
 
     private void showAddTaskDialog() {
@@ -100,74 +113,48 @@ public class TaskManagement extends AppCompatActivity {
         dialog.show();
     }
 
-
     private void loadTasks() {
-        SharedPreferences prefs = getSharedPreferences("CourseData_" + courseName, MODE_PRIVATE);
+        String email = getUserPrefix();
+        // Uses the same naming convention as CourseDetailActivity for seamless data sharing
+        String prefName = email + "_CourseData_" + courseName;
+        SharedPreferences prefs = getSharedPreferences(prefName, MODE_PRIVATE);
+
         try {
-            JSONArray arr = new JSONArray(prefs.getString("tasks", "[]"));
+            // Use unique keys for strict isolation
+            String tasksJson = prefs.getString(email + "_tasks", "[]");
+            JSONArray arr = new JSONArray(tasksJson);
+
             taskList.clear();
             taskCompletionStatus.clear();
+
             for (int i = 0; i < arr.length(); i++) {
-                taskList.add(arr.getString(i));
-                taskCompletionStatus.put(arr.getString(i), false);
+                String taskName = arr.getString(i);
+                taskList.add(taskName);
+                taskCompletionStatus.put(taskName, false);
             }
 
-            JSONArray completionArr = new JSONArray(prefs.getString("taskCompletion", "[]"));
+            String completionJson = prefs.getString(email + "_taskCompletion", "[]");
+            JSONArray completionArr = new JSONArray(completionJson);
             for (int i = 0; i < completionArr.length(); i++) {
                 JSONObject obj = completionArr.getJSONObject(i);
                 String taskName = obj.getString("task");
                 boolean isComplete = obj.getBoolean("completed");
                 taskCompletionStatus.put(taskName, isComplete);
             }
+
             adapter.notifyDataSetChanged();
             updateEmptyState();
         } catch (Exception ignored) {}
     }
-    private void showEditTaskDialog(String oldTaskName, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        // Use the correct edit dialog layout
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_task, null);
-        builder.setView(dialogView);
 
-        EditText etTaskName = dialogView.findViewById(R.id.edit_task_name);
-        Button btnSave = dialogView.findViewById(R.id.btn_save_task);
-
-        // Pre-fill with the existing task name
-        etTaskName.setText(oldTaskName);
-
-        AlertDialog dialog = builder.create();
-
-        // Ensure the background is transparent if you have rounded corners in your pop_card drawable
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        btnSave.setOnClickListener(v -> {
-            String newTaskName = etTaskName.getText().toString().trim();
-            if (!newTaskName.isEmpty()) {
-                // 1. Update the status map (transfer the completion state to the new name)
-                boolean status = taskCompletionStatus.getOrDefault(oldTaskName, false);
-                taskCompletionStatus.remove(oldTaskName);
-                taskCompletionStatus.put(newTaskName, status);
-
-                // 2. Update the list at the specific position
-                taskList.set(position, newTaskName);
-
-                // 3. Persist and refresh
-                saveTasksToDisk();
-                adapter.notifyDataSetChanged();
-                dialog.dismiss();
-            } else {
-                Toast.makeText(this, "Task name cannot be empty", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        dialog.show();
-    }
     private void saveTasksToDisk() {
-        SharedPreferences prefs = getSharedPreferences("CourseData_" + courseName, MODE_PRIVATE);
+        String email = getUserPrefix();
+        String prefName = email + "_CourseData_" + courseName;
+        SharedPreferences prefs = getSharedPreferences(prefName, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("tasks", new JSONArray(taskList).toString());
+
+        // Save with user-specific keys to prevent data bleed
+        editor.putString(email + "_tasks", new JSONArray(taskList).toString());
 
         JSONArray completionArr = new JSONArray();
         for (String task : taskList) {
@@ -178,7 +165,7 @@ public class TaskManagement extends AppCompatActivity {
                 completionArr.put(obj);
             } catch (Exception ignored) {}
         }
-        editor.putString("taskCompletion", completionArr.toString());
+        editor.putString(email + "_taskCompletion", completionArr.toString());
         editor.apply();
         updateEmptyState();
     }
@@ -195,38 +182,22 @@ public class TaskManagement extends AppCompatActivity {
 
     private void setupBottomNavigation() {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
-
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-
-            // 1. Prevent reloading the current activity if already active
-            if (id == nav.getSelectedItemId()) {
-                return true;
-            }
+            if (id == nav.getSelectedItemId()) return true;
 
             Intent intent = null;
-            if (id == R.id.nav_home) {
-                intent = new Intent(this, MainActivity.class);
-            } else if (id == R.id.nav_folders) {
-                intent = new Intent(this, FolderActivity.class);
-            } else if (id == R.id.nav_calendar) {
-                intent = new Intent(this, CalendarActivity.class);
-            } else if (id == R.id.nav_pomodoro) {
-                intent = new Intent(this, PomodoroActivity.class);
-            } else if (id == R.id.nav_id) {
-                intent = new Intent(this, DashboardActivity.class);
-            }
+            if (id == R.id.nav_home) return true; // Already here
+            else if (id == R.id.nav_folders) intent = new Intent(this, FolderActivity.class);
+            else if (id == R.id.nav_calendar) intent = new Intent(this, CalendarActivity.class);
+            else if (id == R.id.nav_pomodoro) intent = new Intent(this, PomodoroActivity.class);
+            else if (id == R.id.nav_id) intent = new Intent(this, DashboardActivity.class);
 
             if (intent != null) {
-                // 2. FLAG_ACTIVITY_CLEAR_TOP is key here.
-                // It clears the stack between the current activity and the target.
-                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
-                // 3. Optional: Finish this activity so it doesn't linger in the stack
-                finish();
                 return true;
             }
-
             return false;
         });
     }
@@ -245,13 +216,14 @@ public class TaskManagement extends AppCompatActivity {
             String task = getItem(position);
             TextView tvTaskTitle = convertView.findViewById(R.id.tvTaskTitle);
             CheckBox cbTaskStatus = convertView.findViewById(R.id.cbTaskStatus);
-            ImageButton btnEditTask = convertView.findViewById(R.id.btnEditTask); // Reference the edit button
+            ImageButton btnEditTask = convertView.findViewById(R.id.btnEditTask);
 
             tvTaskTitle.setText(task);
+
+            // Priority bar color matches your app's yellow theme
             convertView.findViewById(R.id.prioritySideBar).setBackgroundColor(Color.parseColor("#FFD600"));
 
-            // Setup Checkbox
-            cbTaskStatus.setOnCheckedChangeListener(null); // Clear listener before setting checked state
+            cbTaskStatus.setOnCheckedChangeListener(null);
             boolean isCompleted = taskCompletionStatus.getOrDefault(task, false);
             cbTaskStatus.setChecked(isCompleted);
             cbTaskStatus.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -259,11 +231,36 @@ public class TaskManagement extends AppCompatActivity {
                 saveTasksToDisk();
             });
 
-            // Setup Edit Button Click
-            btnEditTask.setOnClickListener(v -> {
-                showEditTaskDialog(task, position);
-            });
-
+            btnEditTask.setOnClickListener(v -> showEditTaskDialog(task, position));
             return convertView;
         }
-    }}
+    }
+
+    private void showEditTaskDialog(String oldTaskName, int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_task, null);
+        builder.setView(dialogView);
+
+        EditText etTaskName = dialogView.findViewById(R.id.edit_task_name);
+        Button btnSave = dialogView.findViewById(R.id.btn_save_task);
+
+        etTaskName.setText(oldTaskName);
+        AlertDialog dialog = builder.create();
+
+        btnSave.setOnClickListener(v -> {
+            String newTaskName = etTaskName.getText().toString().trim();
+            if (!newTaskName.isEmpty()) {
+                boolean status = taskCompletionStatus.getOrDefault(oldTaskName, false);
+                taskCompletionStatus.remove(oldTaskName);
+                taskCompletionStatus.put(newTaskName, status);
+                taskList.set(position, newTaskName);
+                saveTasksToDisk();
+                adapter.notifyDataSetChanged();
+                dialog.dismiss();
+            } else {
+                Toast.makeText(this, "Task name cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog.show();
+    }
+}

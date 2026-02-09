@@ -1,14 +1,7 @@
 package com.example.busybeedraft;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.widget.EditText;
@@ -16,9 +9,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
 
 public class SignupActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 101;
@@ -29,7 +19,7 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Bind Views - Types must be declared to fix "Cannot resolve symbol"
+        // Bind Views
         EditText etFullName = findViewById(R.id.etFullName);
         EditText etEmail = findViewById(R.id.etEmailSignup);
         EditText etPassword = findViewById(R.id.etPasswordSignup);
@@ -48,24 +38,28 @@ public class SignupActivity extends AppCompatActivity {
             } else if (password.length() < 8) {
                 Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show();
             } else {
-                // Save to SharedPreferences
-                SharedPreferences.Editor editor = getSharedPreferences("UserDB", MODE_PRIVATE).edit();
-                editor.putString("email", email);
-                editor.putString("password", password);
-                editor.putString("name", name);
-                editor.apply();
+                SharedPreferences prefs = getSharedPreferences("UserDB", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
 
-                Toast.makeText(this, "Account Created!", Toast.LENGTH_SHORT).show();
+                // Check if email already exists
+                if (prefs.contains(email + "_password")) {
+                    Toast.makeText(this, "User already exists!", Toast.LENGTH_SHORT).show();
+                } else {
+                    editor.putString(email + "_name", name);
+                    editor.putString(email + "_password", password);
+                    editor.apply();
 
-                startActivity(new Intent(SignupActivity.this, LoginActivity.class));
-                finish();
+                    Toast.makeText(this, "Account Created!", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                    finish();
+                }
             }
-        });
+        }); // Closing brace for btnSignup listener
 
+        // This is now correctly outside the btnSignup listener
         tvGoToLogin.setOnClickListener(v -> {
             startActivity(new Intent(SignupActivity.this, LoginActivity.class));
             finish();
         });
-
-
-    }}
+    } // Closing brace for onCreate
+} // Closing brace for Class

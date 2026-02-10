@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,9 +27,11 @@ public class CourseDetailActivity extends AppCompatActivity {
     private TextView tvCourseTitle, tvDetailInstructor, tvDetailSchedule;
     private LinearLayout todoContent, studySetContent, emptyTodoState;
     private Button tabTodo, tabStudySets;
-    private RecyclerView rvTaskList;
+    private RecyclerView rvTaskList, rvStudySets;
     private TaskAdapter taskAdapter;
+    private FlashcardAdapter flashcardAdapter;
     private List<String> taskList = new ArrayList<>();
+    private List<FlashcardAdapter.Flashcard> flashcardList = new ArrayList<>();
     private String courseName;
     private int selectedFolderColor = Color.parseColor("#FFD600");
 
@@ -37,13 +40,13 @@ public class CourseDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_detail);
 
-        // Security Check: Redirect if no user is logged in
         if (getUserPrefix().equals("default_user")) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
+        // UI Binding
         tvCourseTitle = findViewById(R.id.tvCourseTitle);
         tvDetailInstructor = findViewById(R.id.tvDetailInstructor);
         tvDetailSchedule = findViewById(R.id.tvDetailSchedule);
@@ -52,23 +55,34 @@ public class CourseDetailActivity extends AppCompatActivity {
         emptyTodoState = findViewById(R.id.emptyTodoState);
         tabTodo = findViewById(R.id.tabTodo);
         tabStudySets = findViewById(R.id.tabStudySets);
-
         courseName = getIntent().getStringExtra("COURSE_NAME");
 
+        // Tasks Recycler
         rvTaskList = findViewById(R.id.rvTaskList);
         rvTaskList.setLayoutManager(new LinearLayoutManager(this));
         taskAdapter = new TaskAdapter(taskList);
         rvTaskList.setAdapter(taskAdapter);
 
+        // Flashcards Recycler (Matches your XML ID: rvStudySets)
+        rvStudySets = findViewById(R.id.rvStudySets);
+        rvStudySets.setLayoutManager(new LinearLayoutManager(this));
+        flashcardAdapter = new FlashcardAdapter(flashcardList);
+        rvStudySets.setAdapter(flashcardAdapter);
+
         if (courseName != null) {
             tvCourseTitle.setText(courseName);
             loadCourseData();
+            loadFlashcards();
         }
 
         tabTodo.setOnClickListener(v -> toggleTabs(true));
         tabStudySets.setOnClickListener(v -> toggleTabs(false));
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnEditCourse).setOnClickListener(v -> showEditDialog());
+
+        // Add Flashcard Button (Matches your XML ID: btnAddStudySet)
+        findViewById(R.id.btnAddStudySet).setOnClickListener(v -> showFlashcardDialog(null, -1));
+
         findViewById(R.id.btnAddTodo).setOnClickListener(v -> {
             Intent intent = new Intent(this, TaskManagement.class);
             intent.putExtra("COURSE_NAME", courseName);
@@ -76,15 +90,74 @@ public class CourseDetailActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadCourseData();
+    // Changed to public so FlashcardAdapter can call it for editing
+    public void showFlashcardDialog(FlashcardAdapter.Flashcard existingCard, int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View v = getLayoutInflater().inflate(R.layout.dialog_add_flashcard, null);
+
+        EditText etTerm = v.findViewById(R.id.etNewTerm);
+        EditText etDef = v.findViewById(R.id.etNewDefinition);
+        Button btnSave = v.findViewById(R.id.btnSaveFlashcard);
+
+        builder.setView(v);
+        AlertDialog dialog = builder.create();
+
+        if (existingCard != null) {
+            etTerm.setText(existingCard.getTerm());
+            etDef.setText(existingCard.getDefinition());
+        }
+
+        btnSave.setOnClickListener(view -> {
+            String t = etTerm.getText().toString().trim();
+            String d = etDef.getText().toString().trim();
+
+            if (t.isEmpty()) return;
+
+            if (existingCard == null) {
+                flashcardList.add(new FlashcardAdapter.Flashcard(t, d));
+            } else {
+                existingCard.setTerm(t);
+                existingCard.setDefinition(d);
+            }
+            saveFlashcards();
+            flashcardAdapter.notifyDataSetChanged();
+            dialog.dismiss();
+        });
+        dialog.show();
     }
 
+    private void saveFlashcards() {
+        String email = getUserPrefix();
+        SharedPreferences.Editor ed = getSharedPreferences(email + "_Flashcards_" + courseName, MODE_PRIVATE).edit();
+        JSONArray arr = new JSONArray();
+        try {
+            for (FlashcardAdapter.Flashcard f : flashcardList) {
+                JSONObject obj = new JSONObject();
+                obj.put("term", f.getTerm());
+                obj.put("def", f.getDefinition());
+                arr.put(obj);
+            }
+        } catch (Exception ignored) {}
+        ed.putString("cards", arr.toString()).apply();
+    }
+
+    private void loadFlashcards() {
+        String email = getUserPrefix();
+        SharedPreferences prefs = getSharedPreferences(email + "_Flashcards_" + courseName, MODE_PRIVATE);
+        try {
+            JSONArray arr = new JSONArray(prefs.getString("cards", "[]"));
+            flashcardList.clear();
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                flashcardList.add(new FlashcardAdapter.Flashcard(o.getString("term"), o.getString("def")));
+            }
+            flashcardAdapter.notifyDataSetChanged();
+        } catch (Exception ignored) {}
+    }
+
+    // --- UTILITY & ORIGINAL METHODS ---
     private String getUserPrefix() {
-        SharedPreferences sessionPrefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-        return sessionPrefs.getString("current_user_email", "default_user");
+        return getSharedPreferences("UserSession", MODE_PRIVATE).getString("current_user_email", "default_user");
     }
 
     private void toggleTabs(boolean isTodo) {
@@ -96,77 +169,29 @@ public class CourseDetailActivity extends AppCompatActivity {
 
     private void loadCourseData() {
         String email = getUserPrefix();
-        List<String> userCourses = loadMasterCourseList();
-
-        // FIX: Ensure both lists exist and perform a trimmed comparison
-        if (courseName == null || userCourses == null || !userCourses.contains(courseName.trim())) {
-            Toast.makeText(this, "Access Denied: Course not linked to " + email, Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-
-        // Data is unique to User + Course Name
         String prefName = email + "_CourseData_" + courseName.trim();
         SharedPreferences prefs = getSharedPreferences(prefName, MODE_PRIVATE);
-
         tvDetailInstructor.setText(prefs.getString("instructor", "Not Assigned"));
         tvDetailSchedule.setText(prefs.getString("schedule", "TBA"));
         selectedFolderColor = prefs.getInt("folder_color", Color.parseColor("#FFD600"));
-
-        try {
-            JSONArray tArr = new JSONArray(prefs.getString("tasks", "[]"));
-            taskList.clear();
-            for (int i = 0; i < tArr.length(); i++) {
-                taskList.add(tArr.getString(i));
-            }
-            taskAdapter.notifyDataSetChanged();
-
-            emptyTodoState.setVisibility(taskList.isEmpty() ? View.VISIBLE : View.GONE);
-            rvTaskList.setVisibility(taskList.isEmpty() ? View.GONE : View.VISIBLE);
-        } catch (Exception ignored) {}
     }
 
     private void saveCourseData() {
         String email = getUserPrefix();
-        String prefName = email + "_CourseData_" + courseName.trim();
-        SharedPreferences prefs = getSharedPreferences(prefName, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("instructor", tvDetailInstructor.getText().toString());
-        editor.putString("schedule", tvDetailSchedule.getText().toString());
-        editor.putInt("folder_color", selectedFolderColor);
-        editor.apply();
-    }
-
-    /**
-     * FIX: Pulls from the central UserCourses file using the unique user email key.
-     */
-    public List<String> loadMasterCourseList() {
-        String email = getUserPrefix();
-        SharedPreferences prefs = getSharedPreferences("UserCourses", MODE_PRIVATE);
-
-        // This key MUST match FolderActivity.updateMasterCourseList()
-        String json = prefs.getString(email + "_MASTER_COURSES", "[]");
-
-        List<String> list = new ArrayList<>();
-        try {
-            JSONArray arr = new JSONArray(json);
-            for (int i = 0; i < arr.length(); i++) {
-                list.add(arr.getString(i).trim());
-            }
-        } catch (Exception ignored) {}
-        return list;
+        SharedPreferences.Editor ed = getSharedPreferences(email + "_CourseData_" + courseName.trim(), MODE_PRIVATE).edit();
+        ed.putString("instructor", tvDetailInstructor.getText().toString());
+        ed.putString("schedule", tvDetailSchedule.getText().toString());
+        ed.apply();
     }
 
     private void showEditDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View v = getLayoutInflater().inflate(R.layout.dialog_edit_course, null);
-        builder.setView(v);
-
         EditText etInst = v.findViewById(R.id.etEditInstructor);
         EditText etSched = v.findViewById(R.id.etEditSchedule);
         etInst.setText(tvDetailInstructor.getText());
         etSched.setText(tvDetailSchedule.getText());
-
+        builder.setView(v);
         AlertDialog dialog = builder.create();
         v.findViewById(R.id.btnUpdateCourse).setOnClickListener(view -> {
             tvDetailInstructor.setText(etInst.getText().toString());
@@ -190,11 +215,7 @@ public class CourseDetailActivity extends AppCompatActivity {
         @Override public int getItemCount() { return list.size(); }
         class VH extends RecyclerView.ViewHolder {
             TextView t; View s;
-            VH(View v) {
-                super(v);
-                t = v.findViewById(R.id.tvTaskTitle);
-                s = v.findViewById(R.id.prioritySideBar);
-            }
+            VH(View v) { super(v); t = v.findViewById(R.id.tvTaskTitle); s = v.findViewById(R.id.prioritySideBar); }
         }
     }
 }

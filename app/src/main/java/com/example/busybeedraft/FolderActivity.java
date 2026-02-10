@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,8 +33,15 @@ public class FolderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_folder);
 
+        // Security Check: Redirect if no user is logged in
+        if (getUserPrefix().equals("default_user")) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         gvFolders = findViewById(R.id.gvFolders);
-        loadFolders(); // Load saved data first
+        loadFolders(); // Load user-specific folders
 
         adapter = new FolderAdapter(folderList);
         gvFolders.setAdapter(adapter);
@@ -44,9 +52,14 @@ public class FolderActivity extends AppCompatActivity {
         findViewById(R.id.btnAddFolder).setOnClickListener(v -> showAddFolderDialog());
     }
 
+    private String getUserPrefix() {
+        SharedPreferences sessionPrefs = getSharedPreferences("UserSession", MODE_PRIVATE);
+        return sessionPrefs.getString("current_user_email", "default_user");
+    }
+
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigation);
-        bottomNav.setSelectedItemId(R.id.nav_folders); // Highlights "Courses/Folders"
+        bottomNav.setSelectedItemId(R.id.nav_folders);
 
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -66,7 +79,6 @@ public class FolderActivity extends AppCompatActivity {
         EditText etName = v.findViewById(R.id.etSubjectName);
         AlertDialog dialog = builder.create();
 
-        // Color clicks update the 'selectedColor' string
         v.findViewById(R.id.color_pink).setOnClickListener(view -> selectedColor = "folder_pink_full");
         v.findViewById(R.id.color_blue).setOnClickListener(view -> selectedColor = "folder_blue_full");
         v.findViewById(R.id.color_green).setOnClickListener(view -> selectedColor = "folder_green_full");
@@ -77,16 +89,24 @@ public class FolderActivity extends AppCompatActivity {
             String name = etName.getText().toString().trim();
             if (!name.isEmpty()) {
                 folderList.add(new Subject(name, selectedColor));
-                saveFolders(); // Persist to SharedPreferences
+
+                // Save individual folder details and sync the master list for access
+                saveFolders();
+                updateMasterCourseList();
+
                 adapter.notifyDataSetChanged();
                 dialog.dismiss();
+            } else {
+                Toast.makeText(this, "Please enter a subject name", Toast.LENGTH_SHORT).show();
             }
         });
         dialog.show();
     }
 
     private void saveFolders() {
-        SharedPreferences prefs = getSharedPreferences("FolderPrefs", MODE_PRIVATE);
+        String email = getUserPrefix();
+        String userFile = email + "_FolderPrefs";
+        SharedPreferences prefs = getSharedPreferences(userFile, MODE_PRIVATE);
         JSONArray arr = new JSONArray();
         try {
             for (Subject s : folderList) {
@@ -96,14 +116,34 @@ public class FolderActivity extends AppCompatActivity {
                 arr.put(obj);
             }
         } catch (Exception ignored) {}
-        prefs.edit().putString("folders", arr.toString()).apply();
+
+        // Use user-specific key for added isolation
+        prefs.edit().putString(email + "_folders", arr.toString()).apply();
+    }
+
+    /**
+     * SYNC FIX: Ensures CourseDetailActivity recognizes these folders as belonging to the current user.
+     */
+    private void updateMasterCourseList() {
+        String email = getUserPrefix();
+        SharedPreferences masterPrefs = getSharedPreferences("UserCourses", MODE_PRIVATE);
+
+        JSONArray nameArray = new JSONArray();
+        for (Subject s : folderList) {
+            nameArray.put(s.subjectName.trim());
+        }
+
+        masterPrefs.edit().putString(email + "_MASTER_COURSES", nameArray.toString()).apply();
     }
 
     private void loadFolders() {
-        SharedPreferences prefs = getSharedPreferences("FolderPrefs", MODE_PRIVATE);
+        String email = getUserPrefix();
+        String userFile = email + "_FolderPrefs";
+        SharedPreferences prefs = getSharedPreferences(userFile, MODE_PRIVATE);
         folderList.clear();
         try {
-            JSONArray arr = new JSONArray(prefs.getString("folders", "[]"));
+            String json = prefs.getString(email + "_folders", "[]");
+            JSONArray arr = new JSONArray(json);
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
                 folderList.add(new Subject(o.getString("name"), o.getString("color")));
@@ -124,24 +164,23 @@ public class FolderActivity extends AppCompatActivity {
             TextView tvName = v.findViewById(R.id.text_subject_name);
             View folderContainer = v.findViewById(R.id.folderContainer);
 
-            tvName.setText(s.subjectName);
+            if (s != null) {
+                tvName.setText(s.subjectName);
 
-            // Mapping color strings to actual color resources
-            int colorRes = R.color.folder_pink; // Default
-            if (s.colorDrawable.equals("folder_blue_full")) colorRes = R.color.folder_blue;
-            else if (s.colorDrawable.equals("folder_green_full")) colorRes = R.color.folder_green;
-            else if (s.colorDrawable.equals("folder_orange_full")) colorRes = R.color.folder_orange;
-            else if (s.colorDrawable.equals("folder_yellow_full")) colorRes = R.color.folder_yellow;
+                int colorRes = R.color.folder_pink;
+                if (s.colorDrawable.equals("folder_blue_full")) colorRes = R.color.folder_blue;
+                else if (s.colorDrawable.equals("folder_green_full")) colorRes = R.color.folder_green;
+                else if (s.colorDrawable.equals("folder_orange_full")) colorRes = R.color.folder_orange;
+                else if (s.colorDrawable.equals("folder_yellow_full")) colorRes = R.color.folder_yellow;
 
-            folderContainer.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(colorRes)));
+                folderContainer.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(colorRes)));
 
-            // Clicking a folder goes to its detail page
-            v.setOnClickListener(view -> {
-                Intent intent = new Intent(FolderActivity.this, CourseDetailActivity.class);
-                intent.putExtra("COURSE_NAME", s.subjectName);
-                startActivity(intent);
-            });
-
+                v.setOnClickListener(view -> {
+                    Intent intent = new Intent(FolderActivity.this, CourseDetailActivity.class);
+                    intent.putExtra("COURSE_NAME", s.subjectName);
+                    startActivity(intent);
+                });
+            }
             return v;
         }
     }

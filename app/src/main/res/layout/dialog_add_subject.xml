@@ -27,6 +27,13 @@
         android:layout_marginBottom="10dp"
         android:inputType="textCapWords" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick a folder color:"
+        android:textSize="14sp"
+        android:layout_marginBottom="10dp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,11 +41,11 @@
         android:gravity="center"
         android:layout_marginBottom="20dp">
 
-        <View android:id="@+id/color_pink" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="@color/folder_pink" />
-        <View android:id="@+id/color_green" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="@color/folder_green" />
-        <View android:id="@+id/color_blue" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="@color/folder_blue" />
-        <View android:id="@+id/color_yellow" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="@color/folder_yellow" />
-        <View android:id="@+id/color_orange" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="@color/folder_orange" />
+        <View android:id="@+id/color_pink" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="#FFD1DC" android:clickable="true" android:focusable="true"/>
+        <View android:id="@+id/color_green" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="#C1E1C1" android:clickable="true" android:focusable="true"/>
+        <View android:id="@+id/color_blue" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="#AEC6CF" android:clickable="true" android:focusable="true"/>
+        <View android:id="@+id/color_yellow" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="#FDFD96" android:clickable="true" android:focusable="true"/>
+        <View android:id="@+id/color_orange" android:layout_width="45dp" android:layout_height="45dp" android:layout_margin="5dp" android:background="@drawable/pop_card" android:backgroundTint="#FFB347" android:clickable="true" android:focusable="true"/>
     </LinearLayout>
 
     <Button

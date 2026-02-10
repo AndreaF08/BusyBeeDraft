@@ -125,14 +125,38 @@ public class CalendarActivity extends AppCompatActivity {
 
     private void setupBottomNavigation() {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+
+        // Match selection and text visibility logic from TaskManagement
         nav.setSelectedItemId(R.id.nav_calendar);
+
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) startActivity(new Intent(this, TaskManagement.class));
-            else if (id == R.id.nav_folders) startActivity(new Intent(this, FolderActivity.class));
-            else if (id == R.id.nav_pomodoro) startActivity(new Intent(this, PomodoroActivity.class));
-            else if (id == R.id.nav_id) startActivity(new Intent(this, DashboardActivity.class));
-            return true;
+
+            // If the user clicks the icon for the activity they are already on, do nothing
+            if (id == R.id.nav_calendar) {
+                return true;
+            }
+
+            Intent intent = null;
+            if (id == R.id.nav_home) {
+                intent = new Intent(this, TaskManagement.class);
+            } else if (id == R.id.nav_folders) {
+                intent = new Intent(this, FolderActivity.class);
+            } else if (id == R.id.nav_pomodoro) {
+                intent = new Intent(this, PomodoroActivity.class);
+            } else if (id == R.id.nav_id) {
+                intent = new Intent(this, DashboardActivity.class);
+            }
+
+            if (intent != null) {
+                // Use flags from TaskManagement to prevent state loss/reset
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                // Remove animation to prevent the "shifting" look
+                overridePendingTransition(0, 0);
+                return true;
+            }
+            return false;
         });
     }
 
@@ -140,5 +164,9 @@ public class CalendarActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadEventsForDate(selectedDate);
+
+        // Re-sync selection state on resume to ensure text remains labeled correctly
+        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        nav.setSelectedItemId(R.id.nav_calendar);
     }
 }

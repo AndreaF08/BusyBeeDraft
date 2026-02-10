@@ -1,18 +1,14 @@
 package com.example.busybeedraft;
 
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class FlashcardAdapter extends RecyclerView.Adapter<FlashcardAdapter.ViewHolder> {
-    // Changed from CourseDetailActivity.Flashcard to a standard Flashcard model
     private List<Flashcard> flashcardList;
 
     public FlashcardAdapter(List<Flashcard> list) {
@@ -22,46 +18,23 @@ public class FlashcardAdapter extends RecyclerView.Adapter<FlashcardAdapter.View
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflates the display item layout
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_flashcard, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // Use getBindingAdapterPosition() for modern RecyclerView implementations
-        int currentPos = holder.getBindingAdapterPosition();
-        if (currentPos == RecyclerView.NO_POSITION) return;
+        Flashcard card = flashcardList.get(position);
 
-        Flashcard card = flashcardList.get(currentPos);
+        // Sets text to TextViews instead of EditTexts to avoid casting errors
+        holder.tvTerm.setText(card.getTerm());
+        holder.tvDefinition.setText(card.getDefinition());
 
-        // Prevent recursive triggers by removing listeners before setting text
-        holder.etTerm.removeTextChangedListener(holder.termWatcher);
-        holder.etDefinition.removeTextChangedListener(holder.defWatcher);
-
-        holder.etTerm.setText(card.getTerm());
-        holder.etDefinition.setText(card.getDefinition());
-
-        // Update the watchers to target the specific card instance for this position
-        holder.termWatcher = new TextWatcher() {
-            public void afterTextChanged(Editable s) { card.setTerm(s.toString().trim()); }
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-        };
-        holder.defWatcher = new TextWatcher() {
-            public void afterTextChanged(Editable s) { card.setDefinition(s.toString().trim()); }
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-        };
-
-        holder.etTerm.addTextChangedListener(holder.termWatcher);
-        holder.etDefinition.addTextChangedListener(holder.defWatcher);
-
-        holder.btnDelete.setOnClickListener(v -> {
-            int deletePos = holder.getBindingAdapterPosition();
-            if (deletePos != RecyclerView.NO_POSITION) {
-                flashcardList.remove(deletePos);
-                notifyItemRemoved(deletePos);
-                notifyItemRangeChanged(deletePos, flashcardList.size());
+        // Standard click listener to edit the card
+        holder.itemView.setOnClickListener(v -> {
+            if (v.getContext() instanceof CourseDetailActivity) {
+                ((CourseDetailActivity) v.getContext()).showFlashcardDialog(card, position);
             }
         });
     }
@@ -70,22 +43,18 @@ public class FlashcardAdapter extends RecyclerView.Adapter<FlashcardAdapter.View
     public int getItemCount() { return flashcardList.size(); }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        EditText etTerm, etDefinition;
-        ImageView btnDelete;
-        TextWatcher termWatcher, defWatcher;
+        // Changed to TextView to match item_flashcard.xml layout tags
+        TextView tvTerm, tvDefinition;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            etTerm = itemView.findViewById(R.id.etTerm);
-            etDefinition = itemView.findViewById(R.id.etDefinition);
-            btnDelete = itemView.findViewById(R.id.btnDeleteCard);
+            // Uses IDs that exist in your item_flashcard.xml
+            tvTerm = itemView.findViewById(R.id.tvTerm);
+            tvDefinition = itemView.findViewById(R.id.tvDefinition);
         }
     }
 
-    /**
-     * Standalone Flashcard model to replace the one removed from CourseDetailActivity.
-     * This ensures the adapter can still manage data independently.
-     */
+    // Flashcard model with necessary getters and setters
     public static class Flashcard {
         private String term, definition;
         public Flashcard(String t, String d) { this.term = t; this.definition = d; }
